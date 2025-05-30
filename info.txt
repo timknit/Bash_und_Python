@@ -13,3 +13,10 @@ Masterskript
 nach runs filtern mit mv "*run3"
 warinign druchführen und ann user fragen mit userinput
 alle zeiten bleiben gleich, aber dann alle Werte in den Splaten eintragen (paste)
+
+
+
+
+useful commands 
+    - sed
+    - awk
