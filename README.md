@@ -1,0 +1,13 @@
+Aufbau des Skriptes:
+  - Bash:
+    - Aufgabe 01
+    - Aufgabe 02
+    - Aufgabe 03
+  - Python:
+    - Aufgabe 04
+    - Aufgabe 05
+    - Aufgabe 06
+    - Aufgabe 07
+    - Aufgabe 08
+    - Aufgabe 09
+    - Aufgabe 10 
