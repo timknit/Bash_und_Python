@@ -5,23 +5,24 @@ import subprocess
 
 def install_requirements() -> None:
     '''
-    Funktion zum installieren der nötigen Packages zur Datenverarbeitung
-
+    Funktion zum installieren der nötigen Packages zur Datenverarbeitung.
+    Diese Funktion prüft, ob die benötigten Pakete installiert sind und installiert sie bei Bedarf.
+    Installation erfolgt über pip
     '''
     logging.info(f"Function: install_requirements -> Requirements werden installiert ...")
-    required_modules = [
-    'pandas',
-    'matplotlib',
-    'numpy',
-    'seaborn'
-    'logging',     # Standardmodul, wird nicht installiert
-    'getpass',     # Standardmodul, wird nicht installiert
-    'datetime',    # Standardmodul
-    'shutil',      # Standardmodul
-    'string',      # Standardmodul
-    'os',          # Standardmodul
-    'sys'          # Standardmodul
-    ]
+    # required_modules = [
+    # 'pandas',
+    # 'matplotlib',
+    # 'numpy',
+    # 'seaborn'
+    # 'logging',     # Standardmodul, wird nicht installiert
+    # 'getpass',     # Standardmodul, wird nicht installiert
+    # 'datetime',    # Standardmodul
+    # 'shutil',      # Standardmodul
+    # 'string',      # Standardmodul
+    # 'os',          # Standardmodul
+    # 'sys'          # Standardmodul
+    # ]
 
     # Nur Pakete installieren, die nicht im Standardumfang von Python enthalten sind
     installable_modules = ['pandas', 'matplotlib', 'numpy', 'seaborn']
@@ -40,7 +41,7 @@ def install_requirements() -> None:
     logging.info("Alle Module wurden überprüft.\n")
 
 
-# === Imports der vorher Installierten Packete ===
+# === Imports der vorher Installierten Bibliotheken ===
 import os
 import pandas as pd 
 import sys
@@ -57,6 +58,11 @@ import seaborn as sns
 
 
 def setup_logger(log_path: str) -> None:
+    '''
+    Funktion zum Einrichten des Loggers, der die Ausgaben in eine log-Datei schreibt.
+    Das File mit dem Filename wird erstellt
+    Das Logfile solle jedes Mal neu erstellt werden, wenn das Skript ausgeführt wird, daher 'w'
+    '''
     # os.makedirs(os.path.dirname(log_path), exist_ok=True)
     logging.basicConfig(
         filename=log_path,
@@ -68,6 +74,10 @@ def setup_logger(log_path: str) -> None:
 
 
 def gen_colnames(n_frames: int) -> list:
+    '''
+    Funktion zum Generieren von Spaltennamen für die Dataframes.
+    '''
+
     logging.info(f"Function: gen_colnames -> Spaltennamen werden generiert ...")
     # alphabet = list(string.ascii_uppercase)
     alphabet = string.ascii_uppercase # Erzeugt eine Liste ['A', 'B', 'C', 'D', ..., 'Y', 'Z']
@@ -91,6 +101,9 @@ def gen_colnames(n_frames: int) -> list:
 
 
 def df_combined(dir_path: str, sorted_list: list) -> tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    Funktion zum Zusammenführen der Dataframes aus den .xvg Dateien.
+    '''
     logging.info(f"Function: df_combined -> Dataframes werden zusammengeführt ...")
     df_all_forces = None
     df_all_distances = None
@@ -136,6 +149,12 @@ def df_combined(dir_path: str, sorted_list: list) -> tuple[pd.DataFrame, pd.Data
 
 
 def sorted_filelist(dirname: str) -> list:
+    '''
+    Funktion zum Sortieren der Liste der .xvg Dateien.
+    Diese Funktion liest alle Dateien im angegebenen Verzeichnis ein, filtert die .xvg Dateien heraus und sortiert sie basierend auf der Nummer im Dateinamen.
+    :param dirname: Verzeichnis, in dem die .xvg Dateien liegen
+    :return: Sortierte Liste der .xvg Dateinamen
+    '''
     logging.info(f"Function: sorted_filelist -> Liste der Ordnerinhalte sortieren")
     xvg_file_names = []
     files = os.listdir(dirname)
@@ -154,6 +173,11 @@ def sorted_filelist(dirname: str) -> list:
 
 
 def move_basedata_files(dirname: str, dir_path: str) -> None:
+    '''
+    Funktion zum Verschieben der Rohdaten-Dateien in den "basedata" Ordner.
+    :param dirname: Name des aktuellen Verzeichnisses
+    :param dir_path: Pfad zum aktuellen Verzeichnis
+    '''
     logging.info(f"Function: move_basedata_files -> Rohdaten-Files werden verschoben ...")
     # Zielordner erstellen, falls noch nicht vorhanden
     basedata_folder = os.path.join(dir_path, "basedata")
@@ -179,6 +203,10 @@ def move_basedata_files(dirname: str, dir_path: str) -> None:
 
 
 def create_mean_stbw_files(dir_path: str) -> None:
+    '''
+    Funktion zum Erstellen der Durchschnitts- und Standardabweichungsdateien.
+    :param dir_path: Pfad zum aktuellen Verzeichnis
+    '''
     logging.info(f"Function: create_mean_stbw_files -> Durchschnittsdaten und Standardabweichungen werden berechnet ...")
     run_name = os.path.basename(dir_path)
     file_names = os.listdir(dir_path)
@@ -221,6 +249,10 @@ def create_mean_stbw_files(dir_path: str) -> None:
 
 
 def plot_distance_force(dir_path: str) -> None:
+    '''
+    Funktion zum Erstellen des Force-Distance-Plots.
+    :param dir_path: Pfad zum aktuellen Verzeichnis
+    '''
     logging.info(f"Function: plot_distance_force -> Force-Distance-Plot erstellen ...")
     run_name = os.path.basename(dir_path)
     file_path = os.path.join(dir_path, f"summary_file_{run_name}.xvg")
@@ -254,6 +286,10 @@ def plot_distance_force(dir_path: str) -> None:
 
 
 def plot_histogram2(dir_path: str) -> None:
+    '''
+    Funktion zum Erstellen von Histogrammen für die Kräfte und Distanzen.
+    :param dir_path: Pfad zum aktuellen Verzeichnis
+    '''
     run_name = os.path.basename(dir_path)
     files = os.listdir(dir_path)
 
@@ -299,6 +335,12 @@ def plot_histogram2(dir_path: str) -> None:
 
 
 def calc_max_hist(df_values: list, file_name: str) -> float:
+    '''
+    Funktion zum Berechnen des Maximums aus den Histogrammdaten.
+    :param df_values: Liste der Werte aus dem DataFrame
+    :param file_name: Name der Datei, aus der die Daten stammen
+    :return: Wert, bei dem das Maximum liegt
+    '''
     logging.info(f"Function: calc_max_hist -> Maximum der einzelnen Graphen ermitteln ...")
     
     plt.figure(figsize=(16, 10))
@@ -324,6 +366,10 @@ def calc_max_hist(df_values: list, file_name: str) -> float:
     
 
 def plot_histogram(dir_path: str) -> None:
+    '''
+    Funktion zum Erstellen von Histogrammen für die Kräfte und Distanzen.
+    :param dir_path: Pfad zum aktuellen Verzeichnis
+    '''
     logging.info(f"Function: plot_histogram -> Histogramm-Superimposed frequency Diagram plotten ...")
     run_name = os.path.basename(dir_path)
     basedata_path = os.path.join(dir_path, "basedata")
@@ -423,6 +469,10 @@ def plot_histogram(dir_path: str) -> None:
 
 
 def create_report(output_folder: str) -> None:
+    '''
+    Funktion zum Erstellen des Abschlussreports.
+    :param output_folder: Pfad zum Ordner, in dem die Auswertungen liegen
+    '''
     logging.info(f"Function: create_report -> Report-File wird erstellt ...")
     output_path = os.path.join("output", "summary_report.txt")
     report_lines = []
