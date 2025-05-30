@@ -20,3 +20,4 @@ alle zeiten bleiben gleich, aber dann alle Werte in den Splaten eintragen (paste
 useful commands 
     - sed
     - awk
+    
