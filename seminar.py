@@ -600,7 +600,7 @@ if __name__ == "__main__":
             # create_mean_stbw_files(dir_path)
             # plot_distance_force(dir_path)
             # plot_histogram(dir_path)
-            plot_histogram(dir_path)
+            # plot_histogram(dir_path)
 
             if "basedata" in os.listdir(dir_path): # Notwendig um beim erneuten Runnen des Files keine Fehler zu erzeugen
                 logging.warning(f"Verzeichnis '{dirname}' enthält bereits eine Auswertung")

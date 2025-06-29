@@ -46,8 +46,12 @@ for i in {1..3}; do
     echo "Prozess für Ordner 'run$i' abgeschlossen" # Konsolen-Ausgabe
 done
 
+# Das Bash-logfile in den outputfolder verschieben
+mv logfile_bash.log output/
+
 # Rufe das Pythonskript auf für die Weitere Datenverarbeitung
 python seminar.py "$output_folder"
+
 
 
 
