@@ -1,42 +1,26 @@
 #!/bin/bash
+# Erstellt ein logfile und alle weiteren Ausgaben werden in dieses umgeleitet
+echo
+exec > logfile_bash.log # 2>&1
+echo "Logfile erstellt: $(date)" # Konsolen-Ausgabe
+
 
 output_folder="output"
-# # Erstellen eines Output folders
-# mkdir $output_folder
-
-
-#### Prüfe ob die Run1-3 Folder im outputfolder existieren und falls nicht, erstelle diese
-
-# # Liste der gewünschten Ordner
-# ordnerliste=("$output_folder" run{1..3})
-
-# # Schleife durch alle Ordnernamen
-# for ordner in "${ordnerliste[@]}"; do
-#   if [ -d "$ordner" ]; then
-#     echo "Ordner '$ordner' existiert bereits."
-    
-#   else
-#     echo "Ordner '$ordner' existiert nicht. Erstelle..."
-#     mkdir -p "$output_folder/$ordner"
-#   fi
-# done
-
-
+mkdir -p "$output_folder"  # Basisordner erstellen
+echo "Basisordner '$output_folder' erstellt." # Konsolen-Ausgabe
 
 ordnerliste=(run{1..3})
 
-mkdir -p "$output_folder"  # Basisordner erstellen
 
 
-# Check ob die Folder bereits existieren und ob diese erstellt oder überschribene werden sollen je nach User-Eingabe
+# Check ob die Folder run1-run3 bereits existieren und ob diese erstellt oder überschribene werden sollen je nach User-Eingabe
 for ordner in "${ordnerliste[@]}"; do
   pfad="$output_folder/$ordner"
   if [ -d "$pfad" ]; then
-    # echo "Ordner '$pfad' existiert bereits."
     echo -e "\n\e[33mWarnung:\e[0m Der Ordner '$ordner' existiert bereits."
-    read -p "Möchten Sie den Ordner überschreiben? [y/n] " antwort
+    read -p "Möchten Sie den Ordner überschreiben? [y/n] " antwort < /dev/tty > /dev/tty
     if [[ "$antwort" =~ ^[yY]$ ]]; then
-        echo "Ordner wird überschrieben..."
+        echo "Ordner '$pfad' wird überschrieben..."
         rm -rf "$pfad"
         mkdir -p "$pfad"
     else
@@ -51,7 +35,7 @@ done
 
 
 # Verschiebt die Files in die entsprechenden Ordner und entfernt gleichzeitig die unerwüschten Inhalte
-echo "Verschiebe Files, dauert ein wenig" # Konsolen-Ausgabe
+echo "Verschiebe Files" # Konsolen-Ausgabe
 for i in {1..3}; do
     # Entfernt aus der Datei die Zeilen 2-17 heraus, da diese Inhalte nicht relevant sind
     sed -i '2,17d' dataset/*run$i.xvg
@@ -62,7 +46,8 @@ for i in {1..3}; do
     echo "Prozess für Ordner 'run$i' abgeschlossen" # Konsolen-Ausgabe
 done
 
-
+# Rufe das Pythonskript auf für die Weitere Datenverarbeitung
+python seminar.py "$output_folder"
 
 
 

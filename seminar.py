@@ -17,28 +17,47 @@ def install_requirements() -> None:
     # 'seaborn'
     # 'logging',     # Standardmodul, wird nicht installiert
     # 'getpass',     # Standardmodul, wird nicht installiert
-    # 'datetime',    # Standardmodul
-    # 'shutil',      # Standardmodul
-    # 'string',      # Standardmodul
-    # 'os',          # Standardmodul
-    # 'sys'          # Standardmodul
+    # 'datetime',    # Standardmodul, wird nicht installiert
+    # 'shutil',      # Standardmodul, wird nicht installiert
+    # 'string',      # Standardmodul, wird nicht installiert
+    # 'os',          # Standardmodul, wird nicht installiert
+    # 'sys'          # Standardmodul, wird nicht installiert
     # ]
 
     # Nur Pakete installieren, die nicht im Standardumfang von Python enthalten sind
     installable_modules = ['pandas', 'matplotlib', 'numpy', 'seaborn']
 
+    # for module in installable_modules:
+    #     try:
+    #         __import__(module)
+    #         print(f"{module} ist bereits installiert.")
+    #         logging.info(f"Modul: '{module}'")
+    #     except ImportError:
+    #         logging.info(f"Modul: '{module}' nicht installiert")
+    #         logging.info(f"Modul: '{module}' wird installiert")
+    #         print(f"{module} wird installiert...")
+    #         subprocess.check_call([sys.executable, "-m", "pip", "install", module])
+    #         logging.info(f"Modul: '{module}' wurde installiert")
+
+
     for module in installable_modules:
-        try:
+        try: # Versucht es Abzurufen/Importieren
             __import__(module)
             print(f"{module} ist bereits installiert.")
-            logging.info(f"Modul: '{module}'")
-        except ImportError:
-            logging.info(f"Modul: '{module}' nicht installiert")
-            logging.info(f"Modul: '{module}' wird installiert")
-            print(f"{module} wird installiert...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", module])
-            logging.info(f"Modul: '{module}'wurde installiert")
+            logging.info(f"Modul: '{module}' ist bereits installiert")
+        except ImportError:# Fall nicht Abzurufbart/Importierbar -> Neuinstallation
+            try: # Versucht Neuinstallation
+                logging.info(f"Modul: '{module}' nicht installiert")
+                logging.info(f"Modul: '{module}' wird installiert")
+                print(f"{module} wird installiert...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", module])
+                logging.info(f"Modul: '{module}' wurde installiert")
+            except Exception as e: # Fängt Fehler, falls einer auftritt
+                logging.error(f"Fehler bei Installation von '{module}': {e}")
+                print(f"Fehler bei Installation von {module}: {e}")
+
     logging.info("Alle Module wurden überprüft.\n")
+
 
 
 # === Imports der vorher Installierten Bibliotheken ===
@@ -547,6 +566,10 @@ def create_report(output_folder: str) -> None:
 
 
 
+# !!! Aktuelle Änderungen:
+# setup_loggr von w auf a gestellt, damit das logfile aus bash erweitert wird
+# outputfolger überbrückt, damit functionalität des python codes geprüft werden kann
+# Install reqiurements auskommentiert da aktuell über bash ein vir env erstellt wird un dort die packages installiert werden
 
 
 
@@ -555,15 +578,20 @@ def create_report(output_folder: str) -> None:
 #!!!!!!!!!!!!!!!!!!!!!!! 
 
 if __name__ == "__main__":
-    log_file = os.path.join("output", "logfile.log")
-    setup_logger(log_file)
-    # print(f"Logfile wurde erstellt: {log_file}")
 
+
+    log_file = os.path.join("output", "logfile_python.log")
+    setup_logger(log_file)
+    logging.info(f"Logfile wurde erstellt: {log_file}")
+
+    logging.info(f"Python-Interpreter: {sys.executable}")
+
+    # output_folder = 'output'
     output_folder = sys.argv[1]
     logging.info(f"Daten aus Bash-Skript ausgelesen und übergeben\n")
 
     logging.info("Python-Skript gestartet\n")
-    install_requirements()
+    # install_requirements()
 
     for dirname in os.listdir(output_folder): # Iteriert durch jeden Inhalt in dem Ordner/Verzeichnis "output"
         logging.info(f"Verzeichnis '{dirname}' geöffnet")

@@ -1,4 +1,4 @@
-Aufbau des Skriptes:
+# Aufbau des Skriptes:
   - Bash:
     - Aufgabe 01
     - Aufgabe 02
@@ -13,12 +13,17 @@ Aufbau des Skriptes:
     - Aufgabe 10 
 
 
-How to run the code:
+# How to run the code:
   1. Master-Skript "master.sh" im terminal runnen
   2. Als erstes das Terminal/Bash-Console öffnen
   3. Eingabe ins Terminal "bash master.sh output" [output ist the folder, where the results are stored] and press Enter to run the script
   4. Alle Rohdaten befinden sich in einem Ordner
 
+  0. Setup des Codes:
+    1. Öffne die Bash-Shell
+    2. Navigiere in den Aktuellen Ordner, wo die Daten zur Auswertung liegen
+    3. Führe dann 'setup_env.sh' über den Befehl 'bash setup_env.sh' aus [Erstellt ein virtuelles Environment und installiert alle notwendigen Packages, damit es keine Komplikationen gibt]
+    4. Aktiviere das virtuelle Environment über den Befehl 'source Seminar_Bash_Python/Scripts/activate'
 
   1. Start des Programmes:
     1. Navigiert in diesen Ordner [./Seminar] [Für VS-Code: VS-Code öffnen und Ordner öffnen, Für Terminal: per "cd path_to_folder" in den Ordner navigieren]

@@ -1,7 +1,0 @@
-# REPORT
-# Created on 2025-05-23 by tim-k
-#
-# Run	Force variation(kJ/mol/nm)	Distance variation(nm)
-Run_1	2.9215	0.0743
-Run_2	4.5407	0.0748
-Run_3	4.6795	0.0627
