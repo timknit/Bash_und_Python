@@ -1,0 +1,3 @@
+# Hier alles rein was von git ignoriert werden soll
+# Python bytecode files
+dataset/
