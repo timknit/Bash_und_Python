@@ -560,7 +560,7 @@ if __name__ == "__main__":
     logging.info("Python-Skript gestartet\n")
     # install_requirements() # Ersetzt durch das Setupfile 'settup_env.sh'
 
-    for dirname in os.listdir(output_folder): # Iteriert durch jeden Inhalt in dem Ordner/Verzeichnis "output"
+    for dirname in os.listdir(output_folder): # Iteriert durch jeden Inhalt in dem Ordner/Verzeichnis "output" also 'run1' 'run2' und 'run3'
         logging.info(f"Verzeichnis '{dirname}' geöffnet")
         dir_path = os.path.join(output_folder, dirname) # Fügt die Namen der Inhalte mit dem Ursprungspfad zu einem gemeinsamen Pfad zusammen 
         if "run" in dirname:
@@ -569,10 +569,11 @@ if __name__ == "__main__":
                 logging.warning(f"Verzeichnis '{dirname}' enthält bereits eine Auswertung")
                 continue
 
-            xvg_file_names_sort = sorted_filelist(dir_path)
-            df_all_forces, df_all_distances = df_combined(dir_path, xvg_file_names_sort)
+            xvg_file_names_sort = sorted_filelist(dir_path) # Ruft eigene funnktion auf, welche dann für den aktuellen Folder alle darin befindlichen .xvg-Dateien als sortierte Liste zurückgibt
+            df_all_forces, df_all_distances = df_combined(dir_path, xvg_file_names_sort) # Teilt alle sortierten .xvg-Files in Force und Distance auf bennt die Überschriften um und gibt die Dataframes dann aus
+            
 
-            # Erstellte Dateien outputen
+            # Erstellte Dateien outputen -> kann auch nich in combined-Dataframes integriert werden
             output_path = os.path.join(dir_path, f"forces_combined_{dirname}.xvg")
             df_all_forces.to_csv(output_path, sep='\t', index=False)
 
@@ -581,23 +582,23 @@ if __name__ == "__main__":
 
 
             # Ordner aufräumen
-            move_basedata_files(dirname, dir_path)
+            move_basedata_files(dirname, dir_path) # Ruft eigene function auf
 
             # Erstellen des Files mit den jeweiligen Durchschnittswerten und zugehöriger STBW
-            create_mean_stbw_files(dir_path)
+            create_mean_stbw_files(dir_path) # Ruft eigene function auf
 
             # Erstellt die Plots mit Force über Distance
-            plot_distance_force(dir_path)
+            plot_distance_force(dir_path) # Ruft eigene function auf
 
             # Erstellt die Histogramme mit den Häufigkeiten auf der y-Achse und den möglichen Werten auf der x-Achse
-            plot_histogram(dir_path)
+            plot_histogram(dir_path) # Ruft eigene function auf
 
         else:
             continue
 
 
     # Erstellt den Abschlussreport 
-    create_report(output_folder)
+    create_report(output_folder) # Ruft eigene function auf
 
     logging.info(f"Skript vollständig ausgeführt")
 
