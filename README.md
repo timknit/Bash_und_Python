@@ -14,6 +14,8 @@
 
 
 # How to run the code:
+  0. test
+  1. test
   0. Setup des Codes:
     1. Öffne die Bash-Shell
     2. Navigiere in den Auswerte Ordner [der geschickt wurde]
