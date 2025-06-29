@@ -1,15 +1,18 @@
-Logfile erstellt: Sun Jun 29 12:09:23     2025
+Logfile erstellt: Sun Jun 29 13:46:35     2025
 Basisordner 'output' erstellt.
 
-[33mWarnung:[0m Der Ordner 'run1' existiert bereits.
-Ordner bleibt erhalten.
+Ordner 'run1' existiert nicht. Erstelle...
 
-[33mWarnung:[0m Der Ordner 'run2' existiert bereits.
-Ordner bleibt erhalten.
+Ordner 'run2' existiert nicht. Erstelle...
 
-[33mWarnung:[0m Der Ordner 'run3' existiert bereits.
-Ordner bleibt erhalten.
+Ordner 'run3' existiert nicht. Erstelle...
 Verschiebe Files
 Prozess für Ordner 'run1' abgeschlossen
 Prozess für Ordner 'run2' abgeschlossen
 Prozess für Ordner 'run3' abgeschlossen
+Histogramme gespeichert: output\run1\Histogramm_distance_run1.svg
+
+Histogramme gespeichert: output\run2\Histogramm_distance_run2.svg
+
+Histogramme gespeichert: output\run3\Histogramm_distance_run3.svg
+

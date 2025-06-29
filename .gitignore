@@ -1,3 +1,6 @@
 # Hier alles rein was von git ignoriert werden soll
 # Python bytecode files
 dataset/
+output/run1/basedata/
+output/run2/basedata/
+output/run3/basedata/

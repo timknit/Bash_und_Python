@@ -81,24 +81,53 @@ def setup_logger(log_path: str) -> None:
     Funktion zum Einrichten des Loggers, der die Ausgaben in eine log-Datei schreibt.
     Das File mit dem Filename wird erstellt
     Das Logfile solle jedes Mal neu erstellt werden, wenn das Skript ausgeführt wird, daher 'w'
+    :inputs -> log_path: Verzeichnis, in dem das logfile gespeichert werden solle
     '''
-    # os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
     logging.basicConfig(
         filename=log_path,
         filemode='w',  # 'a' für anhängen, 'w' für überschreiben
         level=logging.INFO,  # oder DEBUG, ERROR, etc.
-        format='%(asctime)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(levelname)s - %(message)s' # Zeitstempel - Info/Debug/Error,... - Nachricht
     )
+
+
+
+def sorted_filelist(dirname: str) -> list:
+    '''
+    Funktion zum Sortieren der Liste der Namen der .xvg Dateien.
+    Diese Funktion liest alle Dateien im angegebenen Verzeichnis ein, filtert die .xvg Dateien heraus und sortiert sie basierend auf der Nummer im Dateinamen.
+
+    :inputs -> dirname: Verzeichnis, in dem die .xvg Dateien liegen
+    :return -> Sortierte Liste der .xvg Dateinamen
+    '''
+    logging.info(f"Function: sorted_filelist -> Liste der Ordnerinhalte sortieren")
+    xvg_file_names = [] # Erstellt leer Liste zur Speicherung
+    files = os.listdir(dirname) # Liest alle Filenames aus dem Ordner ein
+    for file in files: # Iteriert durch jeden dieser Filenames
+        if file.endswith(".xvg") and "combined" not in file: # combined muss nur rein, dass wenn man das Skrpt zwei mal runt, dass die Sammeldateien nicht mit ausgelesen werden 
+            xvg_file_names.append(file) # fügt den Namen der aktuellen Datei an die Speicherliste an
+            logging.info(f"File: '{file}' wurde hinzugefügt")
+        else:
+            logging.warning(f"File: '{file}' ist kein '.xvg' File")
+
+    xvg_file_names_sort = sorted(xvg_file_names, key=lambda x: int(x.split('_')[1][5:])) # sortiert die Liste mit den Namen aller .xvg-Dateien anhand der Nummer im Dateinamen, 
+    # lamda fuction erlaubt es eine bestimmte Operation auf eine gesamte Liste durchzuführen, es nimmt das Element 'x' und splittet es druch den '_' und nimmt dann das zweite Element [framexxx] und scheidet dann das frame durch [5:] ab
+    logging.info(f"File Liste wurde sortiert\n")
+
+    return xvg_file_names_sort
 
 
 
 def gen_colnames(n_frames: int) -> list:
     '''
     Funktion zum Generieren von Spaltennamen für die Dataframes.
+    Damit die Frames die Namen FrameA bis FrameZ und dann anschließend FrameAA bis FraemZZ haben können
+    :inputs -> n_frames: Anzahl der Spaltennamen/Frames [ohne Time (ps)]
+    :return -> names: Erzeugte Spaltennamen
     '''
 
     logging.info(f"Function: gen_colnames -> Spaltennamen werden generiert ...")
-    # alphabet = list(string.ascii_uppercase)
     alphabet = string.ascii_uppercase # Erzeugt eine Liste ['A', 'B', 'C', 'D', ..., 'Y', 'Z']
     names = [] # Leere Liste zur Speicherung der Namen
     
@@ -107,7 +136,7 @@ def gen_colnames(n_frames: int) -> list:
         name = ""
         num = i
         while True:
-            name = alphabet[num % 26] + name
+            name = alphabet[num % 26] + name # Berechnet dann über Modulo, um das über 25 ist und nimmt dann das nächste Element also bspw 26 -> 1, also A und A
             num = num // 26 - 1
             if num < 0:
                 break
@@ -122,28 +151,31 @@ def gen_colnames(n_frames: int) -> list:
 def df_combined(dir_path: str, sorted_list: list) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Funktion zum Zusammenführen der Dataframes aus den .xvg Dateien.
+    Splatennamen werden auf Anforderungen der Aufgabenstellung angepasst
+    :inputs -> dir_path: Verzeichnis in welchem die Files liegen, sorted_list: Sortierte Liste der Namen der .xvg-Files in dem Ordner
+    :return -> names: Zwei sortierte Dataframes jeweils für Force und Distance
     '''
     logging.info(f"Function: df_combined -> Dataframes werden zusammengeführt ...")
-    df_all_forces = None
-    df_all_distances = None
+    df_all_forces = None # Müssen als None definiert werden, damit das Später beim Mergen keine Porbleme gibt, 
+    df_all_distances = None # denn es solle der erste Dataframe als 'Muster' übernommen werden so muss ich keinen Leeren Dataframe mit vorgschriebenen Col_names erstellen
 
     for filename in sorted_list:
         logging.info(f"File: {filename} wird verarbeitet")
         file_path = os.path.join(dir_path, filename)
-        # print(filename)
+        # print(filename) # debuggig
         df = pd.read_csv(file_path, sep='\t', comment='#', header=None, names=["Time (ps)", "Value"]) # comment übersprint lines mit '#' am Anfang
         
-        col_name = os.path.basename(filename).replace('.xvg', '')
-        df = df.rename(columns={"Value": col_name})
-        # print(col_name)
+        col_name = os.path.basename(filename).replace('.xvg', '') # schneidet die Dateiendung ab
+        df = df.rename(columns={"Value": col_name}) # bennent im aktuellen Dataframe die Spalte um, damit das gleich beim Mergen keine Porbleme macht, wenn die die gleichen Spaltennamen ahebn
+        # print(col_name) # debuggig
 
-        if "pullf" in filename:
+        if "pullf" in filename: # Check, ob bereits ein Dataframe für Force erstellt wurde, oder ob der aktuelle als Template dienen solle
             if df_all_forces is None:
                 df_all_forces = df
             else:
                 df_all_forces = pd.merge(df_all_forces, df, on="Time (ps)")
 
-        elif "pullx" in filename:
+        elif "pullx" in filename: # Check, ob bereits ein Dataframe für Distance erstellt wurde, oder ob der aktuelle als Template dienen solle
             if df_all_distances is None:
                 df_all_distances = df
             else:
@@ -155,8 +187,8 @@ def df_combined(dir_path: str, sorted_list: list) -> tuple[pd.DataFrame, pd.Data
 
 
     # Vorbereitungen für die Bennenung der neuen Spaltennamen hier nur für einen der Beiden Dataframes berechnet, da die Dateien immer komplementär vorliegen, also eine Force datei zu einer Distance Datei
-    anzahl_cols = len(df_all_forces.columns) - 1  # -1 weil Time (ps)
-    new_colnames = ["Time (ps)"] + gen_colnames(anzahl_cols)
+    anzahl_cols = len(df_all_forces.columns) - 1  # -1 weil Time (ps) nicht umebannt werden solle
+    new_colnames = ["# Time (ps)"] + gen_colnames(anzahl_cols) # '#' vor Time (ps) da Aufgabe das so Verlangt
 
     # Neue Splatennamen umbenennen in den jeweiligen Dataframes
     df_all_forces.columns = new_colnames
@@ -167,35 +199,10 @@ def df_combined(dir_path: str, sorted_list: list) -> tuple[pd.DataFrame, pd.Data
 
 
 
-def sorted_filelist(dirname: str) -> list:
-    '''
-    Funktion zum Sortieren der Liste der .xvg Dateien.
-    Diese Funktion liest alle Dateien im angegebenen Verzeichnis ein, filtert die .xvg Dateien heraus und sortiert sie basierend auf der Nummer im Dateinamen.
-    :param dirname: Verzeichnis, in dem die .xvg Dateien liegen
-    :return: Sortierte Liste der .xvg Dateinamen
-    '''
-    logging.info(f"Function: sorted_filelist -> Liste der Ordnerinhalte sortieren")
-    xvg_file_names = []
-    files = os.listdir(dirname)
-    for file in files:
-        if file.endswith(".xvg") and "combined" not in file: # combined muss nur rein, dass wenn man das Skrpt zwei mal runt, dass die sammeldateien nicht mit ausgelesen werden 
-            xvg_file_names.append(file)
-            logging.info(f"File: '{file}' wurde hinzugefügt")
-        else:
-            logging.warning(f"File: '{file}' ist kein '.xvg' File")
-
-    xvg_file_names_sort = sorted(xvg_file_names, key=lambda x: int(x.split('_')[1][5:]))
-    logging.info(f"File Liste wurde sortiert\n")
-
-    return xvg_file_names_sort
-
-
-
 def move_basedata_files(dirname: str, dir_path: str) -> None:
     '''
     Funktion zum Verschieben der Rohdaten-Dateien in den "basedata" Ordner.
-    :param dirname: Name des aktuellen Verzeichnisses
-    :param dir_path: Pfad zum aktuellen Verzeichnis
+    :inputs -> dirname: Name des aktuellen Verzeichnisses, dir_path: Pfad zum aktuellen Verzeichnis
     '''
     logging.info(f"Function: move_basedata_files -> Rohdaten-Files werden verschoben ...")
     # Zielordner erstellen, falls noch nicht vorhanden
@@ -221,10 +228,13 @@ def move_basedata_files(dirname: str, dir_path: str) -> None:
 
 
 
+
+
+
 def create_mean_stbw_files(dir_path: str) -> None:
     '''
     Funktion zum Erstellen der Durchschnitts- und Standardabweichungsdateien.
-    :param dir_path: Pfad zum aktuellen Verzeichnis
+    :inputs -> dir_path: Pfad zum aktuellen Verzeichnis
     '''
     logging.info(f"Function: create_mean_stbw_files -> Durchschnittsdaten und Standardabweichungen werden berechnet ...")
     run_name = os.path.basename(dir_path)
@@ -235,8 +245,8 @@ def create_mean_stbw_files(dir_path: str) -> None:
             file_path = os.path.join(dir_path, file_name)
             curr_df = pd.read_csv(file_path, sep='\t')
 
-            mean_val = curr_df.drop(columns="Time (ps)").mean()
-            std_val = curr_df.drop(columns="Time (ps)").std()
+            mean_val = curr_df.drop(columns="# Time (ps)").mean()
+            std_val = curr_df.drop(columns="# Time (ps)").std()
             logging.info(f"Durchschnitt für File: '{file_name}' berechnet")
             logging.info(f"Standardabweichung für File: '{file_name}' berechnet")
 
@@ -256,8 +266,7 @@ def create_mean_stbw_files(dir_path: str) -> None:
                     "STD_D": std_val.values
                 })
 
-    # Erst nachdem alle Files ausgelesen wurden solle dann das Mergen beginnen
-    # Merge
+    # Merge alle Daten zusammen
     df_merged = pd.merge(df_distance_mean_std, df_force_mean_std, on="Frame")
     logging.info(f"Durchschnitts- und Standardabweichungsdaten gemerged")
 
@@ -267,10 +276,13 @@ def create_mean_stbw_files(dir_path: str) -> None:
 
 
 
+
+
+
 def plot_distance_force(dir_path: str) -> None:
     '''
     Funktion zum Erstellen des Force-Distance-Plots.
-    :param dir_path: Pfad zum aktuellen Verzeichnis
+    :inputs -> dir_path: Pfad zum aktuellen Verzeichnis
     '''
     logging.info(f"Function: plot_distance_force -> Force-Distance-Plot erstellen ...")
     run_name = os.path.basename(dir_path)
@@ -284,13 +296,15 @@ def plot_distance_force(dir_path: str) -> None:
     plt.errorbar(
         df_summary["Distance (nm)"], df_summary["Force (kJ/mol/nm)"],
         xerr=df_summary["STD_D"], yerr=df_summary["STD_F"],
-        fmt='o', ecolor='gray', capsize=3, markersize=4
+        fmt='o', ecolor='gray', capsize=3, markersize=4, label='Datenpunkte'
     )
 
-    plt.title(f"{run_name}")
+    plt.title(f"Distance-Force: {run_name}")
     plt.xlabel("Distance (nm)")
     plt.ylabel("Force (kJ/mol/nm)")
     plt.grid(True)
+    plt.legend()
+    # plt.legend(handles=[errorbar.lines[0], error_patch])
     plt.tight_layout()
 
     # Speichern
@@ -304,61 +318,14 @@ def plot_distance_force(dir_path: str) -> None:
 
 
 
-def plot_histogram2(dir_path: str) -> None:
-    '''
-    Funktion zum Erstellen von Histogrammen für die Kräfte und Distanzen.
-    :param dir_path: Pfad zum aktuellen Verzeichnis
-    '''
-    run_name = os.path.basename(dir_path)
-    files = os.listdir(dir_path)
-
-    # Iteriert durch die beiden combined Files aus den vorherigen Schritten
-    for file_name in files:
-        if file_name.endswith(".xvg") and "combined" in file_name:
-            if "forces" in file_name:
-                prefix = "force"
-                title = "Histogramm der Kräfte"
-                xlabel = "Force (kJ/mol/nm)"
-
-            elif "distances" in file_name:
-                prefix = "distance"
-                title = "Histogramm der Distanzen"
-                xlabel = "Distance (nm)"
-
-            # Daten aus der Datei laden
-            file_path = os.path.join(dir_path, file_name)
-            df = pd.read_csv(file_path, sep="\t")  
-            df = df.drop(columns=["Time (ps)"])  # Zeitspalte entfernen da nicht benötigt
-
-            # Transformation der Daten in ein 1D Array/ Liste
-            all_values = df.values.flatten()
-
-            # Histogramm plotten
-            plt.figure(figsize=(8, 5))
-            plt.hist(all_values, bins=30, density=True, edgecolor='black')  # density=True → relative Häufigkeit
-            plt.title(title)
-            plt.xlabel(xlabel)
-            plt.ylabel("Relative Häufigkeit")
-            plt.grid(True)
-            plt.tight_layout()
-            # plt.show()
-
-            # Speichern
-            output_path = os.path.join(dir_path, f"Histogramm_{prefix}_{run_name}.png")
-            plt.savefig(output_path)
-            # plt.show()
-            plt.close()
-
-            print(f"Plot gespeichert: {output_path}")
 
 
 
 def calc_max_hist(df_values: list, file_name: str) -> float:
     '''
     Funktion zum Berechnen des Maximums aus den Histogrammdaten.
-    :param df_values: Liste der Werte aus dem DataFrame
-    :param file_name: Name der Datei, aus der die Daten stammen
-    :return: Wert, bei dem das Maximum liegt
+    :inputs ->  df_values: Liste der Werte aus dem DataFrame, file_name: Name der Datei, aus der die Daten stammen
+    :return -> x_max: Wert, bei dem das Maximum liegt
     '''
     logging.info(f"Function: calc_max_hist -> Maximum der einzelnen Graphen ermitteln ...")
     
@@ -384,10 +351,13 @@ def calc_max_hist(df_values: list, file_name: str) -> float:
 
     
 
+
+
+
 def plot_histogram(dir_path: str) -> None:
     '''
     Funktion zum Erstellen von Histogrammen für die Kräfte und Distanzen.
-    :param dir_path: Pfad zum aktuellen Verzeichnis
+    :inputs -> dir_path: Pfad zum aktuellen Verzeichnis
     '''
     logging.info(f"Function: plot_histogram -> Histogramm-Superimposed frequency Diagram plotten ...")
     run_name = os.path.basename(dir_path)
@@ -434,11 +404,8 @@ def plot_histogram(dir_path: str) -> None:
     labels = [f'Dataset {i+1}' for i in range(len(force_data))]
     # plt.hist(force_data, bins=50, density=True, label=labels)  # density=True → relative Häufigkeit
     # sns.histplot(force_data, stat='density', kde=True, bins=50, edgecolor='black')
-
     sns.kdeplot(force_data, color='blue', linewidth=2, legend=None)
-
-
-    plt.title("Histogramm der Kräfte")
+    plt.title("Superimposed-Histogramm der Kräfte")
     plt.xlabel("Force (kJ/mol/nm)")
     plt.ylabel("Relative Häufigkeit")
     plt.grid(True)
@@ -453,12 +420,12 @@ def plot_histogram(dir_path: str) -> None:
 
 
     # Histogramm plotten Distance
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(16, 10))
     labels = [f'Dataset {i+1}' for i in range(len(distance_data))]
     # plt.hist(distance_data, bins=30, density=True, label=labels)  # density=True → relative Häufigkeit
     # sns.histplot(force_data)
     sns.kdeplot(distance_data, color='blue', linewidth=2, legend=None)
-    plt.title("Histogramm der Distanzen")
+    plt.title("Superimposed-Histogramm der Distanzen")
     plt.xlabel("Distance (nm)")
     plt.ylabel("Relative Häufigkeit")
     plt.grid(True)
@@ -487,10 +454,13 @@ def plot_histogram(dir_path: str) -> None:
 
 
 
+
+
+
 def create_report(output_folder: str) -> None:
     '''
     Funktion zum Erstellen des Abschlussreports.
-    :param output_folder: Pfad zum Ordner, in dem die Auswertungen liegen
+    :inputs -> output_folder: Pfad zum Ordner, in dem die Auswertungen liegen
     '''
     logging.info(f"Function: create_report -> Report-File wird erstellt ...")
     output_path = os.path.join("output", "summary_report.txt")
@@ -567,10 +537,8 @@ def create_report(output_folder: str) -> None:
 
 
 # !!! Aktuelle Änderungen:
-# setup_loggr von w auf a gestellt, damit das logfile aus bash erweitert wird
-# outputfolger überbrückt, damit functionalität des python codes geprüft werden kann
-# Install reqiurements auskommentiert da aktuell über bash ein vir env erstellt wird un dort die packages installiert werden
-
+# Anpassung der Kommenatr in den Functions
+# ggf noch den leeren ordner Dataset automatisiert löschen
 
 
 #!!!!!!!!!!!!!!!!!!!!!!!
@@ -586,21 +554,16 @@ if __name__ == "__main__":
 
     logging.info(f"Python-Interpreter: {sys.executable}")
 
-    # output_folder = 'output'
     output_folder = sys.argv[1]
     logging.info(f"Daten aus Bash-Skript ausgelesen und übergeben\n")
 
     logging.info("Python-Skript gestartet\n")
-    # install_requirements()
+    # install_requirements() # Ersetzt durch das Setupfile 'settup_env.sh'
 
     for dirname in os.listdir(output_folder): # Iteriert durch jeden Inhalt in dem Ordner/Verzeichnis "output"
         logging.info(f"Verzeichnis '{dirname}' geöffnet")
         dir_path = os.path.join(output_folder, dirname) # Fügt die Namen der Inhalte mit dem Ursprungspfad zu einem gemeinsamen Pfad zusammen 
         if "run" in dirname:
-            # create_mean_stbw_files(dir_path)
-            # plot_distance_force(dir_path)
-            # plot_histogram(dir_path)
-            # plot_histogram(dir_path)
 
             if "basedata" in os.listdir(dir_path): # Notwendig um beim erneuten Runnen des Files keine Fehler zu erzeugen
                 logging.warning(f"Verzeichnis '{dirname}' enthält bereits eine Auswertung")
@@ -640,71 +603,6 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-# TODO Dataframes werden in run1 erst ab Sekunden 1.6 gemerged, da die xvg Dateien 0 jeweils bei 1.6 starten sollen die alle bei 0 starten oder die sollen herausgelassen werden?
-# TODO Ist in den Histogrammen nach Realtiver oder Absoluter häufikeit gefragt?
-# TODO Solle dann der Wert mit der Höchsten Relativen/absoluten Häufigkeit dann mit den Mittelwerten aus den einzelnen Frames verglichen werden?
-# TODO Step 9 sollen alle Dinge die in dem Skript erledigt werden in das logfile eingetragen werden? Oder was solle da alles rein?
-# TODO Step 10, solle alles Kommentiert werden? Oder nur immer ein "Überabschnitt", wie eine Function oder so?
-
-
-# !!! Current Task: Log-File erstellen -> Gefixed, Log-File wird erstellt und auch gespeichert.
-# TODO: Die höchsten Werte aus jedem Histogram herausgeben und dann daraus den Mean berechnen jeweils für Force und Distance
-
-
-
-
-
-# ??? Dataframes are only merged in run1 from seconds 1.6, since the xvg files 0 start at 1.6, should they all start at 0 or should they be left out?
-# Answer: Möglicherweise nur eine doppelte Ausführung meines Skriptes für alle Dateien. Am Ende nochmal checken.
-
-# ??? Should we use the absolute or relative frequency for the histograms?
-# Answer: realtive
-
-# ??? Should the value with the highest relative/absolute frequency then be compared with the mean values from the individual frames? (Task 8)
-# Answer: Nutze die combined files 
-
-# ??? Step 9 Should all the things that are done in the script be entered in the logfile? Or what should go in there?
-# Answer: 
-
-# ??? Step 10, should everything be commented? Or only a “supersection”, like a function or something?
-# Answer: 
-
-# ??? Do we still have to come to the seminar if we have already handed in the assignment?
-# Answer: 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # # Zugriff auf x- und y-Daten der gezeichneten Kurve
-    # x_data = line.get_lines()[0].get_xdata()
-    # y_data = line.get_lines()[0].get_ydata()
-
-    # # Maximum finden
-    # max_idx = np.argmax(y_data)
-    # x_max = x_data[max_idx]
-    # y_max = y_data[max_idx]
-
-    # print(f"Maximum bei x = {x_max:.6f}, y = {y_max:.6f}")
 
 
 
