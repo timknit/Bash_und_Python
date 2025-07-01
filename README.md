@@ -1,9 +1,21 @@
+  ### How to connect to the repository:
+    1. In den gewünschten Speicherort mit 'cd /pfad/zu/deinem/verzeichnis' navigieren
+    2. git clone https://github.com/timknit/Bash_und_Python.git
+  ### How to push
+    1. git pull 
+    2. git add .
+    3. git commit -m "Meine Message"
+    4. git push origin main
+
+
+
+
 # Aufbau des Skriptes:
-  - Bash:
+  ## Bash:
     - Aufgabe 01
     - Aufgabe 02
     - Aufgabe 03
-  - Python:
+  ## Python:
     - Aufgabe 04
     - Aufgabe 05
     - Aufgabe 06
