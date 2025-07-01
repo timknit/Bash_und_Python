@@ -228,9 +228,6 @@ def move_basedata_files(dirname: str, dir_path: str) -> None:
 
 
 
-
-
-
 def create_mean_stbw_files(dir_path: str) -> None:
     '''
     Funktion zum Erstellen der Durchschnitts- und Standardabweichungsdateien.
@@ -245,21 +242,21 @@ def create_mean_stbw_files(dir_path: str) -> None:
             file_path = os.path.join(dir_path, file_name)
             curr_df = pd.read_csv(file_path, sep='\t')
 
-            mean_val = curr_df.drop(columns="# Time (ps)").mean()
-            std_val = curr_df.drop(columns="# Time (ps)").std()
+            mean_val = curr_df.drop(columns="# Time (ps)").mean() # berechnet den Mittelwert für jede Spalte außer der Zeitspalte
+            std_val = curr_df.drop(columns="# Time (ps)").std() # berechnet die Standardabweichung für jede Spalte außer der Zeitspalte
             logging.info(f"Durchschnitt für File: '{file_name}' berechnet")
             logging.info(f"Standardabweichung für File: '{file_name}' berechnet")
 
             # Forces
-            if "forces" in file_name:
+            if "forces" in file_name: # erstellt Dataframe mit den Mittelwerten und Standardabweichungen für die Kräfte
                 df_force_mean_std = pd.DataFrame({
                     "Frame": mean_val.index,
                     "Force (kJ/mol/nm)": mean_val.values,
                     "STD_F": std_val.values
-                })
+                }) 
 
             # Distances
-            if "distances" in file_name:
+            if "distances" in file_name: # erstellt Dataframe mit den Mittelwerten und Standardabweichungen für die Distanzen
                 df_distance_mean_std = pd.DataFrame({
                     "Frame": mean_val.index,
                     "Distance (nm)": mean_val.values,
@@ -267,15 +264,12 @@ def create_mean_stbw_files(dir_path: str) -> None:
                 })
 
     # Merge alle Daten zusammen
-    df_merged = pd.merge(df_distance_mean_std, df_force_mean_std, on="Frame")
+    df_merged = pd.merge(df_distance_mean_std, df_force_mean_std, on="Frame") # Zusammenfügen der Dataframes anhand des Frames / Namen des Frames
     logging.info(f"Durchschnitts- und Standardabweichungsdaten gemerged")
 
-    output_path = os.path.join(dir_path, f"summary_file_{run_name}.xvg")
-    df_merged.to_csv(output_path, sep='\t', index=False)
+    output_path = os.path.join(dir_path, f"summary_file_{run_name}.xvg") # Speichernamen und -pfad für die Zusammenfassungsdatei
+    df_merged.to_csv(output_path, sep='\t', index=False) # Speichert den merged-dataframe als .xvg ab 
     logging.info(f"Durchschnitts- und Standardabweichungsdaten im summary_file_{run_name}.xvg gespeichert.\n")
-
-
-
 
 
 
@@ -293,11 +287,11 @@ def plot_distance_force(dir_path: str) -> None:
     logging.info(f"Daten aus File: 'summary_file_{run_name}.xvg' eingelesen")
 
     # Plot
-    plt.errorbar(
+    plt.errorbar(# Fehlerbalken jeweils mit der berechneten Standardabweichung
         df_summary["Distance (nm)"], df_summary["Force (kJ/mol/nm)"],
         xerr=df_summary["STD_D"], yerr=df_summary["STD_F"],
         fmt='o', ecolor='gray', capsize=3, markersize=4, label='Datenpunkte'
-    )
+    ) 
 
     plt.title(f"Distance-Force: {run_name}")
     plt.xlabel("Distance (nm)")
@@ -318,9 +312,6 @@ def plot_distance_force(dir_path: str) -> None:
 
 
 
-
-
-
 def calc_max_hist(df_values: list, file_name: str) -> float:
     '''
     Funktion zum Berechnen des Maximums aus den Histogrammdaten.
@@ -332,7 +323,7 @@ def calc_max_hist(df_values: list, file_name: str) -> float:
     plt.figure(figsize=(16, 10))
     line = sns.kdeplot(df_values) # , color='blue', linewidth=2, legend=None)
 
-    # Zugriff auf x- und y-Daten der gezeichneten Kurve
+    # Zugriff auf x- und y-Daten der gezeichneten Kurve (Angepasste KDE-Kurve)
     x_data = line.get_lines()[0].get_xdata()
     y_data = line.get_lines()[0].get_ydata()
 
@@ -349,9 +340,6 @@ def calc_max_hist(df_values: list, file_name: str) -> float:
 
     return x_max # Wert wo das y-Maximum liegt aus P_max = (x_max, y_max)
 
-    
-
-
 
 
 def plot_histogram(dir_path: str) -> None:
@@ -360,15 +348,15 @@ def plot_histogram(dir_path: str) -> None:
     :inputs -> dir_path: Pfad zum aktuellen Verzeichnis
     '''
     logging.info(f"Function: plot_histogram -> Histogramm-Superimposed frequency Diagram plotten ...")
-    run_name = os.path.basename(dir_path)
+    run_name = os.path.basename(dir_path) # ermittelt welche runfolder gerade bearbeitete wird
     basedata_path = os.path.join(dir_path, "basedata")
-    files = sorted_filelist(basedata_path) # eigene Function aufrufen
+    files = sorted_filelist(basedata_path) # eigene Function aufrufen, sortiert die Files
     # files = os.listdir(basedata_path)
     force_data = []
     distance_data = []
 
-    force_x_max = []
-    distance_x_max = []
+    force_x_max = [] 
+    distance_x_max = [] 
 
 
     counter = 0
@@ -379,9 +367,7 @@ def plot_histogram(dir_path: str) -> None:
         # if counter == 10:
         #     break
         if file_name.endswith(".xvg") and "run" in file_name:
-            # Daten aus der Datei laden
             file_path = os.path.join(basedata_path, file_name)
-            # df = pd.read_csv(file_path, sep="\t")
             df = pd.read_csv(file_path, sep='\t', comment='#', header=None, names=["Time (ps)", "Value"]) # comment übersprint lines mit '#' am Anfang
             df = df.drop(columns=["Time (ps)"])  # Zeitspalte entfernen da nicht benötigt
 
@@ -454,9 +440,6 @@ def plot_histogram(dir_path: str) -> None:
 
 
 
-
-
-
 def create_report(output_folder: str) -> None:
     '''
     Funktion zum Erstellen des Abschlussreports.
@@ -481,8 +464,8 @@ def create_report(output_folder: str) -> None:
             dir_path = os.path.join(output_folder, item_name)
             run_name = os.path.basename(dir_path) # Hier könnte man auch einfach das Item selst benutzen
 
-            # Pfade zu den bereits erstellten Zusammenfassungsdateien
-            # summary_file = os.path.join(dir_path, f"summary_file_{run_name}.xvg")
+            # Pfade zu den bereits erstellten Zusammenfassungsdatei
+            # summary_file = os.path.join(dir_path, f"summary_file_{run_name}.xvg") # Kann als alternative zu KDE und max points verwendet werden, wenn Data normally distributed
             summary_file = os.path.join(dir_path, f"x_max_{run_name}.csv")
 
             if not os.path.exists(summary_file):
@@ -538,7 +521,7 @@ def create_report(output_folder: str) -> None:
 
 # !!! Aktuelle Änderungen:
 # Anpassung der Kommenatr in den Functions
-# ggf noch den leeren ordner Dataset automatisiert löschen
+# ggf noch den leeren ordner Dataset automatisiert löschen -> os.rmdir("Dataset") or shutil.rmtree("Dataset") 
 
 
 #!!!!!!!!!!!!!!!!!!!!!!!
